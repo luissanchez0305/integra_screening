@@ -6,7 +6,7 @@ banner:
   image: "/images/banner.png"
   button:
     enable: true
-    label: "Subir o arrastrar archivo"
+    label: "Subir o arrastrar archivo aquí"
     link: "https://github.com/zeon-studio/nextplate"
 
 # Features

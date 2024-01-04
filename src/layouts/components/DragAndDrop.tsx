@@ -1,32 +1,50 @@
 "use client";
 
 import { useRef, useState } from "react";
+import readXlsxFile from 'read-excel-file'
 
 export default function DragAndDrop({
   label,
 }: {
   label: string;
 }) {
-
+  const [status, setStatus] = useState<string>();
   const [dragActive, setDragActive] = useState<boolean>(false);
   const inputRef = useRef<any>(null);
   const [files, setFiles] = useState<any>([]);
 
-  function handleChange(e: any) {
-    e.preventDefault();
-    console.log("File has been added");
-    if (e.target.files && e.target.files[0]) {
-      for (let i = 0; i < e.target.files["length"]; i++) {
-        setFiles((prevState: any) => [...prevState, e.target.files[i]]);
+  function addFile(target: any) {
+    if (target.files && target.files[0]) {
+      const { name } = target.files[0];
+      const ext = name.substring(name.lastIndexOf('.'));
+      if(!ext.includes('.xlsx') && !ext.includes('.xls')){
+        setStatus('El archivo no es un Excel');
+        setTimeout(()=>{setStatus('')}, 10000);
+        return;
+      }
+      for (let i = 0; i < target.files["length"]; i++) {
+        setFiles((prevState: any) => [...prevState, target.files[i]]);
       }
     }
   }
 
-  function handleSubmitFile(e: any) {
+  function handleChange(e: any) {
+    e.preventDefault();
+    addFile(e.target);
+  }
+
+  async function handleSubmitFile(e: any) {
     if (files.length === 0) {
       // no file has been submitted
     } else {
       // write submit logic here
+      console.log(files);
+      for(const file of files){
+        const excel = await readXlsxFile(file);
+        for(const row of excel){
+          console.log('row', row);
+        }
+      }
     }
   }
 
@@ -34,11 +52,7 @@ export default function DragAndDrop({
     e.preventDefault();
     e.stopPropagation();
     setDragActive(false);
-    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-      for (let i = 0; i < e.dataTransfer.files["length"]; i++) {
-        setFiles((prevState: any) => [...prevState, e.dataTransfer.files[i]]);
-      }
-    }
+    addFile(e.dataTransfer);
   }
 
   function handleDragLeave(e: any) {
@@ -111,18 +125,26 @@ export default function DragAndDrop({
                 className="text-red-500 cursor-pointer"
                 onClick={() => removeFile(file.name, idx)}
               >
-                remove
+                Quitar
               </span>
             </div>
           ))}
       </div>
 
-      {/* <button
+      <div className="flex flex-col items-center p-3">
+        {status}
+      </div>
+
+      {
+      files.length ?
+        <button
           className="bg-black rounded-lg p-2 mt-3 w-auto"
           onClick={handleSubmitFile}
         >
           <span className="p-2 text-white">Submit</span>
-        </button> */}
+        </button>
+        : null
+      }
       </form>
     </div>
   );
